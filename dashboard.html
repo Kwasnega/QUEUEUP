@@ -82,6 +82,9 @@
 
     /* small helpers */
     .muted { color:#6b7280; font-size:0.95rem; }
+    .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-top: 12px; }
+    .info-grid div { display: flex; flex-direction: column; }
+    .label { font-weight: 600; font-size: 0.85rem; color: #4b5563; }
 
     @media (max-width:800px){
       .cards-grid { justify-content:center; }
@@ -101,13 +104,13 @@
 
       <div class="icon-group">
         <button id="profileCardLink" class="btn-profile" title="Edit Profile">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="28" height="28"><path d="M7.5 6a4.5 4.5 0 1 1 9 0 4.5 4.5 0 0 1-9 0zM3.75 20.105a8.25 8.25 0 0 1 16.5 0 .75.75 0 0 1-.94.085 6.75 6.75 0 0 0-14.62 0 .75.75 0 0 1-.94-.085z"/></svg>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="28" height="28"><path d="M7.5 6a4.5 4.5 0 1 1 9 0 4.5 4.5 0 0 1-9 0zM3.75 20.105a8.25 8.25 0 0 1 16.498 0 .75.75 0 0 1-.94.085 6.75 6.75 0 0 0-14.62 0 .75.75 0 0 1-.94-.085z"/></svg>
         </button>
 
         <div class="notification-container" title="Notifications">
           <svg class="notification-bell" id="notificationBell" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="24" height="24">
             <path d="M14.5 6.2a1.5 1.5 0 0 1-3 0 1.5 1.5 0 0 1 3 0Z" />
-            <path fill-rule="evenodd" d="M12 2.25A6 6 0 0 0 6 8v3.684l-1.928 2.314a.75.75 0 0 0 1.054 1.115l.412-.383a.5.5 0 0 0 .154-.423v-1.127a6.742 6.742 0 0 1 2.572-5.266A4.5 4.5 0 0 1 12 5.25a4.5 4.5 0 0 1 4.5 4.5v1.127a.5.5 0 0 0 .154.423l.412.383a.75.75 0 0 0 1.054-1.115L18 11.684V8a6 6 0 0 0-6-6Zm2.25 15c.666 0 1.318-.112 1.936-.334a7.514 7.514 0 0 0 4.093-3.664.75.75 0 0 0-.798-1.077 5.964 5.964 0 0 1-3.681 2.404c-.183.045-.369.07-.55.071H9.75a6.002 6.002 0 0 1-6-6v-2.25c0-.414-.336-.75-.75-.75S2.25 8.636 2.25 9v2.25a7.502 7.502 0 0 0 7.5 7.5h4.5ZM12 21.75a2.25 2.25 0 0 1-2.25-2.25h4.5A2.25 2.25 0 0 1 12 21.75Z" clip-rule="evenodd" />
+            <path fill-rule="evenodd" d="M12 2.25A6 6 0 0 0 6 8v3.684l-1.928 2.314a.75.75 0 0 0 1.054 1.115l.412-.383a.5 5 0 0 0 .154-.423v-1.127a6.742 6.742 0 0 1 2.572-5.266A4.5 4.5 0 0 1 12 5.25a4.5 4.5 0 0 1 4.5 4.5v1.127a.5 5 0 0 0 .154.423l.412.383a.75.75 0 0 0 1.054-1.115L18 11.684V8a6 6 0 0 0-6-6Zm2.25 15c.666 0 1.318-.112 1.936-.334a7.514 7.514 0 0 0 4.093-3.664.75.75 0 0 0-.798-1.077 5.964 5.964 0 0 1-3.681 2.404c-.183.045-.369.07-.55.071H9.75a6.002 6.002 0 0 1-6-6v-2.25c0-.414.336-.75.75-.75S2.25 8.636 2.25 9v2.25a7.502 7.502 0 0 0 7.5 7.5h4.5ZM12 21.75a2.25 2.25 0 0 1-2.25-2.25h4.5A2.25 2.25 0 0 1 12 21.75Z" clip-rule="evenodd" />
           </svg>
           <span id="notificationCount" class="notification-count" style="display:none;">0</span>
         </div>
@@ -131,7 +134,15 @@
 
       <div class="section-card academic-card">
         <h3>Academic Information</h3>
-        <p id="academicInfoDisplay">Loading...</p>
+        <div class="info-grid">
+          <div><span class="label">Student ID</span><span id="s-studentId"></span></div>
+          <div><span class="label">Faculty</span><span id="s-faculty"></span></div>
+          <div><span class="label">Group</span><span id="s-department"></span></div>
+          <div><span class="label">Programme</span><span id="s-programme"></span></div>
+          <div><span class="label">Level</span><span id="s-level"></span></div>
+          <div><span class="label">Semester</span><span id="s-semester"></span></div>
+          <div><span class="label">Session</span><span id="s-session"></span></div>
+        </div>
       </div>
 
       <div class="cards-grid" style="margin-top:12px;">
@@ -216,7 +227,6 @@
     // UI elements
     const studentNameDisplay = document.getElementById('studentNameDisplay');
     const studentIdDisplay = document.getElementById('studentIdDisplay');
-    const academicInfoDisplay = document.getElementById('academicInfoDisplay');
     const logoutBtn = document.getElementById('logoutBtn');
     const modalBackdrop = document.getElementById('modalBackdrop');
     const modal = document.getElementById('modal');
@@ -232,6 +242,24 @@
     let complaintsListenerRef = null;
     let resultsListenerRef = null;
     let notificationsListenerRef = null;
+
+    const facultyProgrammes = {
+      "Faculty of Computing & Information Systems (FoCIS)": [
+        "BSc Information Technology", "BSc Mobile Computing", "BSc Information Systems",
+        "BSc Computer Science", "BSc Computer Science (Cybersecurity option)", "BSc Data Science and Analytics",
+        "BSc Network and Systems", "BSc Software Engineering", "BSc Internet of Things and Big Data"
+      ],
+      "Faculty of Engineering (FoE)": [
+        "BSc Telecommunications Engineering", "BSc Computer Engineering", "BSc Electrical & Electronic Engineering",
+        "BSc Mathematics", "Diploma in Telecommunications Engineering"
+      ],
+      "GCTU Business School": [
+        "BSc Accounting with Computing", "BSc Economics", "BSc Procurement and Logistics",
+        "BSc Banking and Finance", "BSc E-Commerce & Marketing Management",
+        "BSc Business Administration with options in HRM, Marketing, Accounting, Management",
+        "Diploma in Public Relations", "Diploma in Management", "Diploma in Accounting option", "Diploma in Marketing option"
+      ]
+    };
 
     /********************** UI helpers **********************/
     function showToast(message, type='info') {
@@ -314,25 +342,189 @@
       return null;
     }
 
+    /********************** CARD: Edit Profile (modal form) **********************/
+    profileCardLink.addEventListener('click', () => {
+      const modalHtml = `
+        <header>
+          <h2>Edit Your Profile</h2>
+          <button id="closeModalBtn" class="close-btn">Close</button>
+        </header>
+        <div class="form">
+          <label>Full Name</label>
+          <input type="text" id="p-fullname" value="${profile?.full_name || ''}" />
+
+          <label>Student ID</label>
+          <input type="text" id="p-studentId" readonly value="${profile?.studentId || ''}" />
+
+          <label>Faculty</label>
+          <select id="p-faculty">
+            <option value="">-- Select a Faculty --</option>
+            ${Object.keys(facultyProgrammes).map(faculty => `<option value="${faculty}" ${profile?.faculty === faculty ? 'selected' : ''}>${faculty}</option>`).join('')}
+          </select>
+
+          <label>Programme</label>
+          <select id="p-programme">
+            <option value="">-- Select a Programme --</option>
+          </select>
+
+          <label>Group</label>
+          <select id="p-department">
+            <option value="Group A" ${profile?.department === 'Group A' ? 'selected' : ''}>Group A</option>
+            <option value="Group B" ${profile?.department === 'Group B' ? 'selected' : ''}>Group B</option>
+            <option value="Group C" ${profile?.department === 'Group C' ? 'selected' : ''}>Group C</option>
+            <option value="Group D" ${profile?.department === 'Group D' ? 'selected' : ''}>Group D</option>
+            <option value="Group E" ${profile?.department === 'Group E' ? 'selected' : ''}>Group E</option>
+            <option value="Group F" ${profile?.department === 'Group F' ? 'selected' : ''}>Group F</option>
+            <option value="Group G" ${profile?.department === 'Group G' ? 'selected' : ''}>Group G</option>
+            <option value="Group H" ${profile?.department === 'Group H' ? 'selected' : ''}>Group H</option>
+            <option value="Group I" ${profile?.department === 'Group I' ? 'selected' : ''}>Group I</option>
+            <option value="Group J" ${profile?.department === 'Group J' ? 'selected' : ''}>Group J</option>
+            <option value="Group K" ${profile?.department === 'Group K' ? 'selected' : ''}>Group K</option>
+            <option value="Group L" ${profile?.department === 'Group L' ? 'selected' : ''}>Group L</option>
+            <option value="Group M" ${profile?.department === 'Group M' ? 'selected' : ''}>Group M</option>
+            <option value="Group N" ${profile?.department === 'Group N' ? 'selected' : ''}>Group N</option>
+            <option value="Group O" ${profile?.department === 'Group O' ? 'selected' : ''}>Group O</option>
+            <option value="Group P" ${profile?.department === 'Group P' ? 'selected' : ''}>Group P</option>
+          </select>
+
+          <label>Level</label>
+          <select id="p-level">
+            <option value="Level 100" ${profile?.level === 'Level 100' ? 'selected' : ''}>Level 100</option>
+            <option value="Level 200" ${profile?.level === 'Level 200' ? 'selected' : ''}>Level 200</option>
+            <option value="Level 300" ${profile?.level === 'Level 300' ? 'selected' : ''}>Level 300</option>
+            <option value="Level 400" ${profile?.level === 'Level 400' ? 'selected' : ''}>Level 400</option>
+          </select>
+
+          <label>Current Semester</label>
+          <select id="p-semester">
+            <option value="First Semester" ${profile?.semester === 'First Semester' ? 'selected' : ''}>First Semester</option>
+            <option value="Second Semester" ${profile?.semester === 'Second Semester' ? 'selected' : ''}>Second Semester</option>
+          </select>
+
+          <label>Session</label>
+          <select id="p-session">
+            <option value="Morning" ${profile?.session === 'Morning' ? 'selected' : ''}>Morning</option>
+            <option value="Evening" ${profile?.session === 'Evening' ? 'selected' : ''}>Evening</option>
+            <option value="Weekend" ${profile?.session === 'Weekend' ? 'selected' : ''}>Weekend</option>
+          </select>
+
+          <button id="p-submit" class="primary">Save Changes</button>
+        </div>
+      `;
+      openModal(modalHtml);
+      document.getElementById('closeModalBtn').addEventListener('click', closeModal);
+
+      const facultySelect = document.getElementById('p-faculty');
+      const programmeSelect = document.getElementById('p-programme');
+
+      const updateProgrammeOptions = (selectedFaculty) => {
+        programmeSelect.innerHTML = '<option value="">-- Select a Programme --</option>'; // Reset
+        if (selectedFaculty && facultyProgrammes[selectedFaculty]) {
+          facultyProgrammes[selectedFaculty].forEach(programme => {
+            const option = document.createElement('option');
+            option.value = programme;
+            option.textContent = programme;
+            if (profile?.programme === programme) {
+              option.selected = true;
+            }
+            programmeSelect.appendChild(option);
+          });
+        }
+      };
+
+      // Initial population
+      if (facultySelect.value) {
+        updateProgrammeOptions(facultySelect.value);
+      }
+
+      // Event listener for changes
+      facultySelect.addEventListener('change', (e) => {
+        profile.programme = ''; // Reset programme when faculty changes
+        updateProgrammeOptions(e.target.value);
+      });
+
+      document.getElementById('p-submit').addEventListener('click', async (e) => {
+        e.preventDefault();
+        const btn = e.target;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner"></span> Saving...';
+
+        const updatedProfile = {
+          full_name: document.getElementById('p-fullname').value,
+          studentId: document.getElementById('p-studentId').value,
+          faculty: document.getElementById('p-faculty').value,
+          programme: document.getElementById('p-programme').value,
+          department: document.getElementById('p-department').value,
+          level: document.getElementById('p-level').value,
+          semester: document.getElementById('p-semester').value,
+          session: document.getElementById('p-session').value,
+        };
+
+        try {
+          const user = auth.currentUser;
+          if (user) {
+            const userRef = ref(db, `users_by_uid/${user.uid}`);
+            await update(userRef, updatedProfile);
+
+            // Also update the local profile object immediately
+            profile = { ...profile, ...updatedProfile };
+            renderProfileData(); // Re-render the UI with new data
+
+            showToast('Profile updated successfully!', 'success');
+            setTimeout(closeModal, 700);
+          } else {
+            showToast('User not authenticated.', 'error');
+          }
+        } catch (err) {
+          showToast('Error updating profile: ' + err.message, 'error');
+        } finally {
+          btn.disabled = false;
+          btn.innerHTML = 'Save Changes';
+        }
+      });
+    });
+
+    function renderProfileData() {
+      if (profile && profile.full_name && profile.studentId) {
+        studentNameDisplay.textContent = `Hello, ${profile.full_name}`;
+        studentIdDisplay.textContent = profile.studentId;
+        document.getElementById('s-studentId').textContent = profile.studentId;
+        document.getElementById('s-faculty').textContent = profile.faculty || '—';
+        document.getElementById('s-department').textContent = profile.department || '—';
+        document.getElementById('s-programme').textContent = profile.programme || '—';
+        document.getElementById('s-level').textContent = profile.level || '—';
+        document.getElementById('s-semester').textContent = profile.semester || '—';
+        document.getElementById('s-session').textContent = profile.session || '—';
+      } else if (auth.currentUser && auth.currentUser.email) {
+        // fallback: show email as ID, but not "Student"
+        studentNameDisplay.textContent = `Hello, ${auth.currentUser.displayName || auth.currentUser.email.split('@')[0] || 'Student'}`;
+        studentIdDisplay.textContent = auth.currentUser.email;
+        document.getElementById('s-studentId').textContent = auth.currentUser.email;
+        document.getElementById('s-faculty').textContent = '—';
+        document.getElementById('s-department').textContent = '—';
+        document.getElementById('s-programme').textContent = '—';
+        document.getElementById('s-level').textContent = '—';
+        document.getElementById('s-semester').textContent = '—';
+        document.getElementById('s-session').textContent = '—';
+      } else {
+        studentNameDisplay.textContent = `Hello, Student`;
+        studentIdDisplay.textContent = 'No ID';
+        document.getElementById('s-studentId').textContent = 'No ID';
+        document.getElementById('s-faculty').textContent = '—';
+        document.getElementById('s-department').textContent = '—';
+        document.getElementById('s-programme').textContent = '—';
+        document.getElementById('s-level').textContent = '—';
+        document.getElementById('s-semester').textContent = '—';
+        document.getElementById('s-session').textContent = '—';
+      }
+    }
+
     onAuthStateChanged(auth, async (user) => {
       if (user) {
         currentUID = user.uid;
         // find profile
         profile = await findProfileForUid(currentUID);
-        if (profile && profile.full_name && profile.studentId) {
-          studentNameDisplay.textContent = `Hello, ${profile.full_name}`;
-          studentIdDisplay.textContent = profile.studentId;
-          academicInfoDisplay.textContent = `${profile.department || '—'} | ${profile.academic_year || '—'} | ${profile.semester || '—'}`;
-        } else if (user.email) {
-          // fallback: show email as ID, but not "Student"
-          studentNameDisplay.textContent = `Hello, ${user.displayName || user.email.split('@')[0] || 'Student'}`;
-          studentIdDisplay.textContent = user.email;
-          academicInfoDisplay.textContent = '—';
-        } else {
-          studentNameDisplay.textContent = `Hello, Student`;
-          studentIdDisplay.textContent = 'No ID';
-          academicInfoDisplay.textContent = '—';
-        }
+        renderProfileData();
         updateNotificationCount();
       } else {
         window.location.href = 'login.html';
@@ -382,115 +574,19 @@
       });
     }
 
-    /********************** CLICK HANDLERS FOR NEW FEATURES **********************/
-
-    // Make Edit Profile button clickable and functional
-    profileCardLink.addEventListener('click', () => {
-      if (!profile) {
-        showToast('Profile data is not available. Try again later.', 'error');
-        return;
+    /********************** Data Loading & Rendering **********************/
+    // Logout button
+    logoutBtn.addEventListener('click', async () => {
+      try {
+        await signOut(auth);
+        showToast('Signed out', 'info');
+        setTimeout(()=> window.location.href = 'login.html', 700);
+      } catch (err) {
+        showToast('Sign out failed: ' + err.message, 'error');
       }
-      const departments = [
-        "Faculty of Computer and Information Systems",
-        "Faculty of Engineering",
-        "Faculty of Business IT"
-      ];
-      const academicYears = [
-        "Level 100",
-        "Level 200",
-        "Level 300",
-        "Level 400"
-      ];
-      const semesters = [
-        "First Semester",
-        "Second Semester"
-      ];
-
-      // Generate options HTML for Department
-      const departmentOptionsHtml = departments.map(d =>
-        `<option value="${d}" ${profile.department === d ? 'selected' : ''}>${d}</option>`
-      ).join('');
-
-      // Generate options HTML for Academic Year
-      const academicYearOptionsHtml = academicYears.map(y =>
-        `<option value="${y}" ${profile.academic_year === y ? 'selected' : ''}>${y}</option>`
-      ).join('');
-
-      // Generate options HTML for Semester
-      const semesterOptionsHtml = semesters.map(s =>
-        `<option value="${s}" ${profile.semester === s ? 'selected' : ''}>${s}</option>`
-      ).join('');
-
-      const modalHtml = `
-        <header>
-          <h2>Edit Profile</h2>
-          <button id="closeModalBtn" class="close-btn">Close</button>
-        </header>
-        <div class="form">
-          <label>Full Name</label>
-          <input type="text" id="profile-name" value="${profile.full_name || ''}" placeholder="Enter your full name" />
-          <label>Student ID</label>
-          <input type="text" id="profile-studentId" value="${profile.studentId || ''}" placeholder="Enter your student ID" />
-          <label>Department</label>
-          <select id="profile-department">
-            <option value="">Select Department</option>
-            ${departmentOptionsHtml}
-          </select>
-          <label>Academic Year</label>
-          <select id="profile-academicYear">
-            <option value="">Select Academic Year</option>
-            ${academicYearOptionsHtml}
-          </select>
-          <label>Semester</label>
-          <select id="profile-semester">
-            <option value="">Select Semester</option>
-            ${semesterOptionsHtml}
-          </select>
-          <button id="profile-submit" class="primary">Save Changes</button>
-        </div>
-      `;
-      openModal(modalHtml);
-      document.getElementById('closeModalBtn').addEventListener('click', closeModal);
-
-      document.getElementById('profile-submit').addEventListener('click', async (ev) => {
-        ev.preventDefault();
-        const btn = ev.currentTarget;
-        const orig = btn.innerHTML;
-        showSpinnerOnButton(btn, true, 'Saving...');
-
-        const newProfile = {
-          full_name: document.getElementById('profile-name').value.trim(),
-          studentId: document.getElementById('profile-studentId').value.trim(),
-          department: document.getElementById('profile-department').value,
-          academic_year: document.getElementById('profile-academicYear').value,
-          semester: document.getElementById('profile-semester').value
-        };
-
-        if (!newProfile.full_name || !newProfile.studentId) {
-          showToast('Name and Student ID are required.', 'error');
-          showSpinnerOnButton(btn, false, orig);
-          return;
-        }
-
-        try {
-          // Update the profile in the database
-          await update(ref(db, `users_by_uid/${currentUID}`), newProfile);
-          profile = { ...profile, ...newProfile }; // Update local state
-          
-          // Also update the display on the main page
-          studentNameDisplay.textContent = `Hello, ${profile.full_name}`;
-          studentIdDisplay.textContent = profile.studentId;
-          academicInfoDisplay.textContent = `${profile.department || '—'} | ${profile.academic_year || '—'} | ${profile.semester || '—'}`;
-
-          showToast('Profile updated successfully!', 'success');
-          setTimeout(() => closeModal(), 700);
-        } catch (err) {
-          showToast('Error updating profile: ' + err.message, 'error');
-        } finally {
-          showSpinnerOnButton(btn, false, orig);
-        }
-      });
     });
+
+    /********************** CLICK HANDLERS FOR NEW FEATURES **********************/
 
     // Make Notifications button clickable and functional
     notificationBell.addEventListener('click', async () => {
@@ -582,6 +678,7 @@
 
     /********************** CARD: Report Results Issue (modal form) **********************/
     document.getElementById('resultsCard').addEventListener('click', (e) => {
+      const groupOptions = Array.from({length: 16}, (_, i) => String.fromCharCode(65 + i)).map(g => `<option value="Group ${g}">Group ${g}</option>`).join('');
       const modalHtml = `
         <header>
           <h2>Report Results Issue</h2>
@@ -592,15 +689,28 @@
           <input type="text" id="ri-studentId" readonly value="${profile?.studentId || ''}" />
 
           <label>Faculty</label>
-          <select id="ri-faculty">
-            <option value="">Select a Faculty</option>
-            <option>Faculty of Computer and Information Systems</option>
-            <option>Faculty of Engineering</option>
-            <option>Faculty of Business IT</option>
+          <input type="text" id="ri-faculty" readonly value="${profile?.faculty || ''}" />
+
+          <label>Group</label>
+          <input type="text" id="ri-department" readonly value="${profile?.department || ''}" />
+
+          <label>Programme</label>
+          <input type="text" id="ri-programme" readonly value="${profile?.programme || ''}" />
+
+          <label>Session</label>
+          <input type="text" id="ri-session" readonly value="${profile?.session || ''}" />
+
+          <label>Group</label>
+          <select id="ri-group">
+            <option value="">Select Group</option>
+            ${groupOptions}
           </select>
 
           <label>Course Code</label>
           <input type="text" id="ri-course" placeholder="e.g., CBT 101" />
+
+          <label>Course Title</label>
+          <input type="text" id="ri-course-title" placeholder="e.g., Introduction to Computing" />
 
           <label>Name of Lecturer</label>
           <input type="text" id="ri-lecturer" placeholder="e.g., Dr. Gideon Genius" />
@@ -613,6 +723,9 @@
             <option>Incorrect Course Registration</option>
             <option>Not on Examination List</option>
           </select>
+
+          <label>Any Comment? <span style="color:#888;font-weight:normal;">(optional)</span></label>
+          <textarea id="ri-comment" placeholder="Add any additional details..."></textarea>
 
           <button id="ri-submit" class="primary">Submit Results Issue</button>
         </div>
@@ -633,11 +746,17 @@
         showSpinnerOnButton(btn, true);
 
         const payload = {
-          student_id: document.getElementById('ri-studentId').value || (profile && profile.studentId) || '',
-          faculty: document.getElementById('ri-faculty').value,
+          student_id: profile?.studentId || '',
+          faculty: profile?.faculty || '',
+          department: profile?.department || '',
+          programme: profile?.programme || '',
+          session: profile?.session || '',
+          group: document.getElementById('ri-group').value,
           course_code: document.getElementById('ri-course').value.trim(),
+          course_title: document.getElementById('ri-course-title').value.trim(),
           lecturer_name: document.getElementById('ri-lecturer').value.trim(),
           description: document.getElementById('ri-desc').value,
+          comment: document.getElementById('ri-comment').value.trim(),
           date_submitted: new Date().toISOString(),
           status: 'Queued'
         };
@@ -651,8 +770,7 @@
 
         try {
           // store under results_issues/{uid}/{pushId}
-          const resultsRefFlat = ref(db, `result_issues`);
-const newRFlat = push(resultsRefFlat); // <-- push first to get the key
+const newRFlat = push(ref(db, `result_issues`)); // <-- push first to get the key
 const resultsRefStudent = ref(db, `results_issues/${payload.student_id}/${newRFlat.key}`); // <-- now use the key
 const resultData = {
   id: newRFlat.key,
@@ -703,8 +821,27 @@ await set(resultsRefStudent, resultData);
           <label>Student ID</label>
           <input type="text" id="c-studentId" readonly value="${profile?.studentId || ''}" />
 
-          <label>Complaint</label>
-          <textarea id="c-text" placeholder="Enter your complaint here..."></textarea>
+          <label>Complaint Subject</label>
+          <input type="text" id="c-subject" placeholder="e.g., Timetable Clash" />
+
+          <label>Complaint Type</label>
+          <select id="c-type">
+            <option value="" disabled selected>Select a type</option>
+            <option value="Academic">Academic</option>
+            <option value="Administrative">Administrative</option>
+            <option value="Facilities">Facilities</option>
+            <option value="Other">Other</option>
+          </select>
+
+          <label>Submit To</label>
+          <select id="c-recipient">
+            <option value="General" selected>General (visible to all relevant admins)</option>
+            <option value="HOD">Head of Department (HOD)</option>
+            <option value="Exam Officer">Exam Officer</option>
+          </select>
+
+          <label>Complaint Message</label>
+          <textarea id="c-message" placeholder="Please describe your complaint in detail..."></textarea>
 
           <button id="c-submit" class="primary">Submit Complaint</button>
         </div>
@@ -720,28 +857,44 @@ await set(resultsRefStudent, resultData);
         showSpinnerOnButton(submitBtn, true);
 
         const studentIdValue = document.getElementById('c-studentId').value || (profile && profile.studentId) || '';
-                const textValue = document.getElementById('c-text').value.trim();
+        const subjectValue = document.getElementById('c-subject').value.trim();
+        const typeValue = document.getElementById('c-type').value;
+        const recipientValue = document.getElementById('c-recipient').value;
+        const messageValue = document.getElementById('c-message').value.trim();
 
-        if (!textValue) {
-          showToast('Please enter your complaint.', 'error');
+        if (!subjectValue || !typeValue || !recipientValue || !messageValue) {
+          showToast('Please fill all fields.', 'error');
           showSpinnerOnButton(submitBtn, false, orig);
           return;
         }
 
         try {
-          // store under complaints/{studentId}/{pushId}
-          const complaintsRefFlat = ref(db, `complaints`);
-const newComplaintFlat = push(complaintsRefFlat);
-const newComplaintStudent = ref(db, `complaints/${studentIdValue}/${newComplaintFlat.key}`);
-const complaintData = {
-  id: newComplaintFlat.key,
-  student_id: studentIdValue,
-  text: textValue,
-  date_submitted: new Date().toISOString(),
-  status: 'Queued'
-};
-await set(newComplaintFlat, complaintData);
-await set(newComplaintStudent, complaintData);
+          const complaintData = {
+            student_id: studentIdValue,
+            user_uid: currentUID,
+            subject: subjectValue,
+            type: typeValue,
+            recipient: recipientValue,
+            text: messageValue,
+            status: 'Queued',
+            date_submitted: new Date().toISOString(),
+            // Attach full academic info from profile
+            department: profile?.department || 'N/A',
+            programme: profile?.programme || 'N/A',
+            level: profile?.level || 'N/A',
+            session: profile?.session || 'N/A',
+            faculty: profile?.faculty || 'N/A', // Assuming faculty is in profile
+          };
+
+          // store under complaints/{pushId}
+          const newComplaintFlat = push(ref(db, `complaints`));
+          const newComplaintStudent = ref(db, `complaints/${studentIdValue}/${newComplaintFlat.key}`);
+          const complaintDataWithId = {
+            ...complaintData,
+            id: newComplaintFlat.key
+          };
+          await set(newComplaintFlat, complaintDataWithId);
+          await set(newComplaintStudent, complaintDataWithId);
 
 
           // add a notification

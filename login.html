@@ -251,7 +251,10 @@
         }
 
         localStorage.setItem("studentId", studentId);
-        window.location.href = "dashboard.html";
+        // Add a short delay to allow Firebase Auth state to propagate
+        setTimeout(() => {
+          window.location.href = "dashboard.html";
+        }, 600); // 600ms delay
 
       } catch (err) {
         let errorMessage = "An unknown error occurred. Please try again.";

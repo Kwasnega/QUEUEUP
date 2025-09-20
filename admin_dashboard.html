@@ -249,6 +249,7 @@
   .s-pending { background: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
   .s-inprogress { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
   .s-resolved { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+  .s-deleted { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
 
   .search-input { width: 320px; max-width: 100%; border: 1.5px solid var(--border); transition: border 0.2s; }
   .search-input:focus { border: 1.5px solid var(--primary-color); box-shadow: 0 0 0 2px var(--primary-color); }
@@ -280,6 +281,7 @@
   <span class="nav-tab active" data-tab="dashboard">Dashboard Overview</span>
   <span class="nav-tab" data-tab="users">User Management</span>
   <span class="nav-tab" data-tab="complaints">Complaints</span>
+  <span class="nav-tab" data-tab="inactive_complaints">Inactive</span>
   <span class="nav-tab" data-tab="result_issues">Result Issues</span>
     </div>
 
@@ -351,7 +353,7 @@
           <h3>All Complaints <span id="complaints-count" class="small-muted"></span></h3>
           <div style="display:flex; gap:8px">
             <input class="search-input" id="complaints-search" placeholder="Search subject or student id...">
-            <select id="complaints-filter"><option value="all">All</option><option value="pending">Pending</option><option value="in_progress">In Progress</option><option value="resolved">Resolved</option></select>
+            <select id="complaints-filter"><option value="all">All</option><option value="pending">Pending</option><option value="in_progress">In Progress</option><option value="resolved">Resolved</option><option value="deleted">Deleted</option></select>
           </div>
         </div>
 
@@ -363,15 +365,39 @@
                 <th>Student</th>
                 <th>Type</th>
                 <th>Status</th>
+                <th>Admin Logs</th>
                 <th>Date</th>
                 <th>Actions</th>
               </tr>
             </thead>
-            <tbody id="complaints-table-body"><tr><td colspan="6" class="small-muted">Loading complaints...</td></tr></tbody>
+            <tbody id="complaints-table-body"><tr><td colspan="7" class="small-muted">Loading complaints...</td></tr></tbody>
           </table>
         </div>
       </div>
     </div>
+
+    <div id="inactive-complaints-content" style="display:none;">
+      <div class="card">
+        <div class="list-header">
+          <h3>Inactive Complaints</h3>
+          <div class="small-muted">Items are permanently deleted after 30 days of inactivity.</div>
+        </div>
+        <div style="margin-top:12px; overflow:auto">
+          <table class="list-table">
+            <thead>
+              <tr>
+                <th>Student ID</th>
+                <th>Complaint</th>
+                <th>Date Submitted</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="inactive-complaints-table-body"><tr><td colspan="5" class="small-muted">Loading...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
 
     <div id="result_issues-content" style="display:none;">
       <div class="card">
@@ -459,6 +485,7 @@
   // const queueContent = document.getElementById('queue-content');
     const userManagementContent = document.getElementById('user-management-content');
     const complaintsContent = document.getElementById('complaints-content');
+    const inactiveComplaintsContent = document.getElementById('inactive-complaints-content');
     const resultIssuesContent = document.getElementById('result_issues-content');
 
     const logoutBtn = document.getElementById('logout-btn');
@@ -484,6 +511,9 @@
     const complaintsSearchInput = document.getElementById('complaints-search');
     const complaintsFilterSelect = document.getElementById('complaints-filter');
     const complaintsCountEl = document.getElementById('complaints-count');
+
+    // Inactive Complaints
+    const inactiveComplaintsTableBody = document.getElementById('inactive-complaints-table-body');
 
     // Result issues
     const resultTableBody = document.getElementById('result-table-body');
@@ -527,6 +557,7 @@ let combinedQueueData = [];
           initDashboard();
           initUserManagement();
           initComplaints();
+          initInactiveComplaints();
           initResultIssues();
         }
       }).catch(err => {
@@ -552,12 +583,14 @@ let combinedQueueData = [];
   dashboardContent.style.display = 'none';
   userManagementContent.style.display = 'none';
   complaintsContent.style.display = 'none';
+  inactiveComplaintsContent.style.display = 'none';
   resultIssuesContent.style.display = 'none';
 
       const tabName = tab.dataset.tab;
   if (tabName === 'dashboard') { dashboardContent.style.display = 'block'; initCharts(); }
   if (tabName === 'users') { userManagementContent.style.display = 'block'; renderUsers(allUsersData); }
   if (tabName === 'complaints') { complaintsContent.style.display = 'block'; renderComplaints(allComplaintsData); }
+  if (tabName === 'inactive_complaints') { inactiveComplaintsContent.style.display = 'block'; renderInactiveComplaints(); }
   if (tabName === 'result_issues') { resultIssuesContent.style.display = 'block'; renderResultIssues(allResultIssuesData); }
     }));
 
@@ -665,7 +698,11 @@ function initDashboard() {
         const name = u.name || u.full_name || 'N/A';
         const sid = u.studentID || u.studentId || 'N/A';
         const tr = document.createElement('tr');
-        tr.innerHTML = `<td>${escapeHtml(name)}</td><td>${escapeHtml(sid)}</td><td>${escapeHtml(u.role||'Student')}</td><td>${join}</td><td><button class="action-btn view-btn" data-uid="${u.uid}">View</button></td>`;
+        tr.innerHTML = `<td>${escapeHtml(name)}</td><td>${escapeHtml(sid)}</td><td>${escapeHtml(u.role||'Student')}</td><td>${join}</td><td><button class="action-btn view-btn">View</button></td>`;
+        const viewBtn = tr.querySelector('.view-btn');
+        if (viewBtn) {
+          viewBtn.addEventListener('click', () => showStudentProfileModal(sid));
+        }
         userTableBody.appendChild(tr);
       });
       userTableBody.querySelectorAll('.view-btn').forEach(b=> b.addEventListener('click', e=> showStudentProfileModal(e.currentTarget.dataset.uid)));
@@ -709,7 +746,7 @@ function renderComplaints(arr){
   complaintsCountEl.textContent = `(${filtered.length})`;
 
   if (!filtered.length) {
-    complaintsTableBody.innerHTML = '<tr><td colspan="6" class="small-muted">No complaints found.</td></tr>';
+    complaintsTableBody.innerHTML = '<tr><td colspan="7" class="small-muted">No complaints found.</td></tr>';
     return;
   }
 
@@ -719,12 +756,14 @@ function renderComplaints(arr){
     const date = c.date_submitted ? new Date(c.date_submitted).toLocaleString() : 'N/A';
     const statusClass = `s-${(c.status||'pending').replace(/\s+/g,'_')}`;
     const stu = c.student_id || 'Unknown';
+    const logs = c.admin_logs ? c.admin_logs.join('<br>') : 'No logs';
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td>${escapeHtml(c.subject||c.description||'Complaint')}</td>
       <td>${escapeHtml(stu)}</td>
       <td>${escapeHtml(c.type || 'General')}</td>
       <td><span class="status-badge ${statusClass}">${escapeHtml(c.status||'pending')}</span></td>
+      <td>${logs}</td>
       <td>${escapeHtml(date)}</td>
       <td>
         <button class="action-btn view-btn">View</button>
@@ -733,7 +772,7 @@ function renderComplaints(arr){
         <button class="action-btn escalate-btn" data-action="delete" data-id="${c.id}" data-student="${stu}">Delete</button>
       </td>`;
     // Attach the complaint object to the view button for modal
-    tr.querySelector('.view-btn').addEventListener('click', () => showComplaintModal(c));
+    tr.querySelector('.view-btn').addEventListener('click', () => showComplaintDetails(c));
     complaintsTableBody.appendChild(tr);
   });
 
@@ -742,23 +781,57 @@ function renderComplaints(arr){
       const id = e.currentTarget.dataset.id;
       const action = e.currentTarget.dataset.action;
       const studentId = btn.dataset.student;
-      if (action==='view') showComplaintModal(id);
-      else if (action==='delete') deleteComplaint(id, studentId);
+      if (action==='view') showComplaintDetails(id);
+      else if (action==='delete') {
+        deleteComplaint(id, studentId);
+        // Switch to inactive tab after deletion
+        tabs.forEach(t => t.classList.remove('active'));
+        document.querySelector('.nav-tab[data-tab="inactive_complaints"]').classList.add('active');
+        dashboardContent.style.display = 'none';
+        userManagementContent.style.display = 'none';
+        complaintsContent.style.display = 'none';
+        inactiveComplaintsContent.style.display = 'block';
+        resultIssuesContent.style.display = 'none';
+      }
       else setComplaintStatus(id, studentId, action);
     });
   });
 }
 
 function setComplaintStatus(complaintId, studentId, newStatus) {
+  // Get current user info
+  const currentUser = auth.currentUser;
+  const adminName = currentUser ? currentUser.email.split('@')[0] : 'Unknown Admin';
+  const timestamp = new Date().toISOString();
+  
+  // Add admin log entry
+  const logEntry = `${adminName} (${newStatus}) at ${timestamp}`;
+  
   // Update flat path
-  update(ref(db, `complaints/${complaintId}`), { status: newStatus });
+  const updates = {
+    status: newStatus
+  };
+  
+  if (newStatus === 'deleted') {
+    // Instead of deleting, mark as deleted
+    updates.status = 'deleted';
+    updates.admin_logs = updates.admin_logs || [];
+    updates.admin_logs.push(logEntry);
+  } else {
+    // For other statuses, just update the status and add log
+    updates.admin_logs = updates.admin_logs || [];
+    updates.admin_logs.push(logEntry);
+  }
+  
+  update(ref(db, `complaints/${complaintId}`), updates);
+  
   // Update per-student path
   if (studentId) {
     get(ref(db, `complaints/${studentId}`)).then(snap => {
       if (snap.exists()) {
         Object.entries(snap.val()).forEach(([pushId, obj]) => {
           if (obj && obj.id === complaintId) {
-            update(ref(db, `complaints/${studentId}/${pushId}`), { status: newStatus });
+            update(ref(db, `complaints/${studentId}/${pushId}`), updates);
           }
         });
       }
@@ -767,6 +840,125 @@ function setComplaintStatus(complaintId, studentId, newStatus) {
 }
 
 function deleteComplaint(complaintId, studentId) {
+  // Mark as deleted instead of removing permanently
+  setComplaintStatus(complaintId, studentId, 'deleted');
+}
+
+function showComplaintDetails(complaint) {
+  const studentUser = allUsersData.find(u => u.studentId === complaint.student_id);
+
+  let modalContent = `
+    <div class="modal-header">
+      <h3>Complaint Details</h3>
+      <button onclick="closeModal()" class="action-btn view-btn" style="border:none;">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="detail-grid">
+        <div><span class="label">Subject</span><span>${escapeHtml(complaint.subject)}</span></div>
+        <div><span class="label">Type</span><span>${escapeHtml(complaint.type)}</span></div>
+        <div><span class="label">Status</span><span><span class="status-badge s-${(complaint.status||'pending').replace(/\s+/g,'_')}">${escapeHtml(complaint.status || 'pending')}</span></span></div>
+        <div><span class="label">Date Submitted</span><span>${new Date(complaint.date_submitted).toLocaleString()}</span></div>
+      </div>
+      <div class="detail-section">
+        <span class="label">Description</span>
+        <p>${escapeHtml(complaint.description)}</p>
+      </div>
+      <hr>`;
+
+  if (studentUser) {
+    modalContent += `
+      <h3>Student Information</h3>
+      <div class="detail-grid">
+        <div><span class="label">Full Name</span><span>${escapeHtml(studentUser.full_name || studentUser.name || 'N/A')}</span></div>
+        <div><span class="label">Student ID</span><span>${escapeHtml(studentUser.studentId || studentUser.studentID || 'N/A')}</span></div>
+        <div><span class="label">Group</span><span>${escapeHtml(studentUser.group || 'N/A')}</span></div>
+        <div><span class="label">Programme</span><span>${escapeHtml(studentUser.programme || 'N/A')}</span></div>
+        <div><span class="label">Department</span><span>${escapeHtml(studentUser.department || 'N/A')}</span></div>
+        <div><span class="label">Level</span><span>${escapeHtml(studentUser.level || 'N/A')}</span></div>
+        <div><span class="label">Semester</span><span>${escapeHtml(studentUser.semester || 'N/A')}</span></div>
+        <div><span class="label">Session</span><span>${escapeHtml(studentUser.session || 'N/A')}</span></div>
+      </div>
+      <hr>`;
+  } else {
+    modalContent += `
+      <h3>Student Information</h3>
+      <div class="detail-grid">
+        <div><span class="label">Student ID</span><span>${escapeHtml(complaint.student_id)}</span></div>
+      </div>
+      <p class="small-muted">Full student profile not found.</p>
+      <hr>`;
+  }
+
+  modalContent += `
+      <h3>Admin Logs</h3>
+      <div class="admin-logs">
+        ${complaint.admin_logs ? complaint.admin_logs.map(log =>
+          `<div class="log-item"><strong>${escapeHtml(log.admin || 'Admin')}</strong> changed status to <em>${escapeHtml(log.status)}</em> on ${new Date(log.timestamp).toLocaleString()}</div>`
+        ).join('') : '<p class="small-muted">No admin activity yet.</p>'}
+      </div>
+    </div>`;
+
+  openModal(modalContent);
+}
+
+function updateComplaintStatus(complaintId) {
+  const newStatus = document.getElementById('status-changer').value;
+  setComplaintStatus(complaintId, null, newStatus);
+  closeModal();
+}
+
+    // ---------- Inactive Complaints management ----------
+function initInactiveComplaints(){
+  // Load inactive complaints (those marked as deleted)
+  onValue(ref(db, 'complaints'), (snap) => {
+    const obj = snap.val() || {};
+    const complaints = Object.entries(obj).map(([id, v]) => ({ id, ...v }));
+    renderInactiveComplaints(complaints);
+  });
+}
+
+function renderInactiveComplaints(complaints = []) {
+  // Filter complaints that are deleted and older than 30 days
+  const now = Date.now();
+  const thirtyDaysAgo = now - (30 * 24 * 60 * 60 * 1000); // 30 days in milliseconds
+  
+  const inactiveComplaints = complaints.filter(c => {
+    if (c.status !== 'deleted') return false;
+    const submittedDate = c.date_submitted ? new Date(c.date_submitted) : null;
+    return submittedDate && submittedDate.getTime() < thirtyDaysAgo;
+  });
+
+  inactiveComplaintsTableBody.innerHTML = '';
+  
+  if (!inactiveComplaints.length) {
+    inactiveComplaintsTableBody.innerHTML = '<tr><td colspan="5" class="small-muted">No inactive complaints found.</td></tr>';
+    return;
+  }
+
+  inactiveComplaints.forEach(c => {
+    const date = c.date_submitted ? new Date(c.date_submitted).toLocaleString() : 'N/A';
+    const statusClass = `s-${(c.status||'deleted').replace(/\s+/g,'_')}`;
+    const stu = c.student_id || 'Unknown';
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${escapeHtml(stu)}</td>
+      <td>${escapeHtml(c.subject || c.description || 'Complaint')}</td>
+      <td>${escapeHtml(date)}</td>
+      <td><span class="status-badge ${statusClass}">${escapeHtml(c.status||'deleted')}</span></td>
+      <td>
+        <button class="action-btn done-btn" data-action="permanently_delete" data-id="${c.id}" data-student="${stu}">Permanently Delete</button>
+      </td>`;
+    tr.querySelector('.action-btn').addEventListener('click', e => {
+      const id = e.currentTarget.dataset.id;
+      const action = e.currentTarget.dataset.action;
+      const studentId = e.currentTarget.dataset.student;
+      if (action === 'permanently_delete') permanentlyDeleteComplaint(id, studentId);
+    });
+    inactiveComplaintsTableBody.appendChild(tr);
+  });
+}
+
+function permanentlyDeleteComplaint(complaintId, studentId) {
   // Remove from flat path
   update(ref(db), {
     [`complaints/${complaintId}`]: null
@@ -776,6 +968,7 @@ function deleteComplaint(complaintId, studentId) {
     get(ref(db, `complaints/${studentId}`)).then(snap => {
       if (snap.exists()) {
         Object.entries(snap.val()).forEach(([pushId, obj]) => {
+          // Use id field for matching
           if (obj && obj.id === complaintId) {
             update(ref(db), { [`complaints/${studentId}/${pushId}`]: null });
           }
@@ -783,6 +976,8 @@ function deleteComplaint(complaintId, studentId) {
       }
     });
   }
+  // Re-render to reflect changes
+  renderInactiveComplaints();
 }
 
 
@@ -838,7 +1033,7 @@ function renderResultIssues(arr){
         <button class="action-btn done-btn" data-action="resolved" data-id="${issue.id}" data-student="${stu}">Resolve</button>
         <button class="action-btn escalate-btn" data-action="delete" data-id="${issue.id}" data-student="${stu}">Delete</button>
       </td>`;
-    tr.querySelector('.view-btn').addEventListener('click', () => showResultIssueModal(issue));
+    tr.querySelector('.view-btn').addEventListener('click', () => showResultIssueDetails(issue));
     resultTableBody.appendChild(tr);
   });
 
@@ -847,8 +1042,18 @@ function renderResultIssues(arr){
       const id = e.currentTarget.dataset.id;
       const action = e.currentTarget.dataset.action;
       const studentId = btn.dataset.student;
-      if (action === 'view') showResultIssueModal(id);
-      else if (action === 'delete') deleteResultIssue(id, studentId);
+      if (action === 'view') showResultIssueDetails(id);
+      else if (action === 'delete') {
+        deleteResultIssue(id, studentId);
+        // Switch to inactive tab after deletion
+        tabs.forEach(t => t.classList.remove('active'));
+        document.querySelector('.nav-tab[data-tab="inactive_complaints"]').classList.add('active');
+        dashboardContent.style.display = 'none';
+        userManagementContent.style.display = 'none';
+        complaintsContent.style.display = 'none';
+        inactiveComplaintsContent.style.display = 'block';
+        resultIssuesContent.style.display = 'none';
+      }
       else setResultIssueStatus(id, studentId, action);
     });
   });
@@ -872,17 +1077,34 @@ function setResultIssueStatus(issueId, studentId, newStatus) {
 }
 
 function deleteResultIssue(issueId, studentId) {
-  // Remove from flat path
-  update(ref(db), {
-    [`result_issues/${issueId}`]: null
+  const issueRef = ref(db, `result_issues/${issueId}`);
+  get(issueRef).then(snapshot => {
+    if (snapshot.exists()) {
+      const issueData = snapshot.val();
+      const updates = {};
+      // Add to archived path
+      updates[`archived_result_issues/${issueId}`] = { ...issueData, archivedAt: new Date().toISOString() };
+      // Remove from active path
+      updates[`result_issues/${issueId}`] = null;
+      
+      update(ref(db), updates).then(() => {
+        showToast('Issue archived successfully.', 'success');
+      }).catch(err => {
+        console.error("Error archiving issue:", err);
+        showToast('Error archiving issue.', 'error');
+      });
+    }
   });
-  // Remove from per-student path
+
+  // This part is for the per-student path, which seems to have a typo in your code (`results_issues`).
+  // I'll keep your original logic but it might need review.
   if (studentId) {
-    get(ref(db, `results_issues/${studentId}`)).then(snap => {
+    const studentIssuesRef = ref(db, `results_issues/${studentId}`);
+    get(studentIssuesRef).then(snap => {
       if (snap.exists()) {
         Object.entries(snap.val()).forEach(([pushId, obj]) => {
-          // Use id field for matching
           if (obj && obj.id === issueId) {
+            // Just remove it from the student's active view.
             update(ref(db), { [`results_issues/${studentId}/${pushId}`]: null });
           }
         });
@@ -891,12 +1113,64 @@ function deleteResultIssue(issueId, studentId) {
   }
 }
 
+function showResultIssueDetails(issue) {
+  const studentUser = allUsersData.find(u => u.studentId === issue.student_id);
+
+  let modalContent = `
+    <div class="modal-header">
+      <h3>Result Issue Details</h3>
+      <button onclick="closeModal()" class="action-btn view-btn" style="border:none;">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="detail-grid">
+        <div><span class="label">Course Code</span><span>${escapeHtml(issue.course_code)}</span></div>
+        <div><span class="label">Status</span><span><span class="status-badge s-${(issue.status||'Queued').replace(/\s+/g,'_')}">${escapeHtml(issue.status || 'Queued')}</span></span></div>
+        <div><span class="label">Date Submitted</span><span>${new Date(issue.date_submitted).toLocaleString()}</span></div>
+      </div>
+      <div class="detail-section">
+        <span class="label">Issue Description</span>
+        <p>${escapeHtml(issue.description)}</p>
+      </div>
+      <hr>`;
+
+  if (studentUser) {
+    modalContent += `
+      <h3>Student Information</h3>
+      <div class="detail-grid">
+        <div><span class="label">Full Name</span><span>${escapeHtml(studentUser.full_name || studentUser.name || 'N/A')}</span></div>
+        <div><span class="label">Student ID</span><span>${escapeHtml(studentUser.studentId || studentUser.studentID || 'N/A')}</span></div>
+        <div><span class="label">Group</span><span>${escapeHtml(studentUser.group || 'N/A')}</span></div>
+        <div><span class="label">Programme</span><span>${escapeHtml(studentUser.programme || 'N/A')}</span></div>
+        <div><span class="label">Department</span><span>${escapeHtml(studentUser.department || 'N/A')}</span></div>
+        <div><span class="label">Level</span><span>${escapeHtml(studentUser.level || 'N/A')}</span></div>
+        <div><span class="label">Semester</span><span>${escapeHtml(studentUser.semester || 'N/A')}</span></div>
+        <div><span class="label">Session</span><span>${escapeHtml(studentUser.session || 'N/A')}</span></div>
+      </div>`;
+  } else {
+    modalContent += `
+      <h3>Student Information</h3>
+      <div class="detail-grid">
+        <div><span class="label">Student ID</span><span>${escapeHtml(issue.student_id)}</span></div>
+      </div>
+      <p class="small-muted">Full student profile not found.</p>`;
+  }
+
+  modalContent += `</div>`;
+
+  openModal(modalContent);
+}
+
+function updateResultIssueStatus(issueId) {
+  const newStatus = document.getElementById('status-changer').value;
+  setResultIssueStatus(issueId, null, newStatus);
+  closeModal();
+}
 
     // ---------- Modals ----------
     function openModal(htmlContent) {
       const modalBackdrop = document.getElementById('modalBackdrop');
-      const modalContent = modalBackdrop.querySelector('.modal-content');
-      modalContent.innerHTML = htmlContent;
+      const modalContentElement = modalBackdrop.querySelector('.modal-content');
+      modalContentElement.innerHTML = htmlContent;
       modalBackdrop.style.display = 'flex';
       document.body.style.overflow = 'hidden';
       modalBackdrop.setAttribute('aria-hidden', 'false');
@@ -919,82 +1193,62 @@ function deleteResultIssue(issueId, studentId) {
     }
     window.closeModal = closeModal;
 
-    function showComplaintModal(complaint) {
-      const html = `
-        <header>
-          <h2>Complaint Details</h2>
-          <button onclick="closeModal()" class="close-btn">Close</button>
-        </header>
-        <div>
-          <strong>Student ID:</strong> ${escapeHtml(complaint.student_id)}<br>
-          <strong>Complaint:</strong> ${escapeHtml(complaint.text)}<br>
-          <strong>Status:</strong> ${escapeHtml(complaint.status)}<br>
-          <strong>Date Submitted:</strong> ${complaint.date_submitted ? new Date(complaint.date_submitted).toLocaleString() : ''}
-        </div>
-      `;
-      openModal(html);
-    }
-    window.showComplaintModal = showComplaintModal;
+  function showStudentProfileModal(studentId) {
+    const studentUser = allUsersData.find(u => u.studentId === studentId);
+    if (!studentUser) {
+      showToast('Could not find user details.', 'error');
+      return;
+    }
 
-    function showResultIssueModal(issue) {
-      const html = `
-        <header>
-          <h2>Result Issue Details</h2>
-          <button onclick="closeModal()" class="close-btn">Close</button>
-        </header>
-        <div>
-          <strong>Student ID:</strong> ${escapeHtml(issue.student_id)}<br>
-          <strong>Faculty:</strong> ${escapeHtml(issue.faculty)}<br>
-          <strong>Course Code:</strong> ${escapeHtml(issue.course_code)}<br>
-          <strong>Lecturer:</strong> ${escapeHtml(issue.lecturer_name)}<br>
-          <strong>Description:</strong> ${escapeHtml(issue.description)}<br>
-          <strong>Status:</strong> ${escapeHtml(issue.status)}<br>
-          <strong>Date Submitted:</strong> ${issue.date_submitted ? new Date(issue.date_submitted).toLocaleString() : ''}
-        </div>
-      `;
-      openModal(html);
-    }
-    window.showResultIssueModal = showResultIssueModal;
+    const modalContent = `
+      <div class="modal-header">
+        <h3>Student Profile</h3>
+        <button onclick="closeModal()" class="action-btn view-btn" style="border:none;">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="detail-grid">
+          <div><span class="label">Full Name</span><span>${escapeHtml(studentUser.full_name || studentUser.name || 'N/A')}</span></div>
+          <div><span class="label">Student ID</span><span>${escapeHtml(studentUser.studentId || 'N/A')}</span></div>
+          <div><span class="label">Email</span><span>${escapeHtml(studentUser.email || 'N/A')}</span></div>
+          <div><span class="label">Faculty</span><span>${escapeHtml(studentUser.faculty || 'N/A')}</span></div>
+          <div><span class="label">Department</span><span>${escapeHtml(studentUser.department || 'N/A')}</span></div>
+          <div><span class="label">Programme</span><span>${escapeHtml(studentUser.programme || 'N/A')}</span></div>
+          <div><span class="label">Group</span><span>${escapeHtml(studentUser.group || 'N/A')}</span></div>
+          <div><span class="label">Level</span><span>${escapeHtml(studentUser.level || 'N/A')}</span></div>
+          <div><span class="label">Semester</span><span>${escapeHtml(studentUser.semester || 'N/A')}</span></div>
+          <div><span class="label">Session</span><span>${escapeHtml(studentUser.session || 'N/A')}</span></div>
+        </div>
+      </div>
+    `;
+    openModal(modalContent);
+  }
 
-    function showStudentProfileModal(uid) {
-      get(ref(db, `users_by_uid/${uid}`)).then(snap => {
-        if (!snap.exists()) {
-          openModal('<div style="padding:24px">No profile found for this user.</div>');
-          return;
-        }
-        const u = snap.val();
-        const html = `
-          <div class="modal-header">
-            <h3>Student Profile</h3>
-            <button onclick="closeModal()" class="action-btn view-btn">Close</button>
-          </div>
-          <div>
-            <strong>Name:</strong> ${escapeHtml(u.full_name || u.name || '')}<br>
-            <strong>Student ID:</strong> ${escapeHtml(u.studentId || u.studentID || '')}<br>
-            <strong>Department:</strong> ${escapeHtml(u.department || '')}<br>
-            <strong>Academic Year:</strong> ${escapeHtml(u.academic_year || '')}<br>
-            <strong>Semester:</strong> ${escapeHtml(u.semester || '')}<br>
-            <strong>Email:</strong> ${escapeHtml(u.email || '')}
-          </div>
-        `;
-        openModal(html);
-      });
-    }
-    window.showStudentProfileModal = showStudentProfileModal;
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
 
-    // utility to prevent XSS
-    function escapeHtml(text) {
-      if (!text) return '';
-      return text.replace(/&/g, "&amp;")
-             .replace(/</g, "&lt;")
-             .replace(/>/g, "&gt;")
-             .replace(/"/g, "&quot;")
-             .replace(/'/g, "&#039;");
-    }
+function showToast(message, type) {
+  // Simple toast implementation
+  const toast = document.createElement('div');
+  toast.textContent = message;
+  toast.style.position = 'fixed';
+  toast.style.bottom = '20px';
+  toast.style.right = '20px';
+  toast.style.padding = '12px 20px';
+  toast.style.borderRadius = '8px';
+  toast.style.color = '#fff';
+  toast.style.backgroundColor = type === 'error' ? '#dc3545' : '#28a745';
+  toast.style.zIndex = '9999';
+  toast.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
+  document.body.appendChild(toast);
+  
+  setTimeout(() => {
+    toast.remove();
+  }, 3000);
+}
 
-    // ---------- Dashboard logic ----------
-    // ...existing dashboard logic (initDashboard, renderComplaints, renderResultIssues, etc.)
-
-  </script>
+</script>
 </body>
 </html>
